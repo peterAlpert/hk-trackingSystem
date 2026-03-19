@@ -1,0 +1,11 @@
+<div class="login-container text-center w-75 mx-auto mt-5" dir="rtl">
+    <h2 class="animate__animated animate__fadeInDown">تسجيل الدخول</h2>
+
+    <input [(ngModel)]="name" placeholder="أدخل اسمك"
+        class="form-control my-3 animate__animated animate__fadeInUp mx-auto w-75 text-center" />
+
+    <button (click)="login()" class="btn btn-primary btn-lg animate__animated animate__pulse"
+        (mousedown)="buttonClick()" (mouseup)="buttonRelease()">
+        تسجيل الدخول
+    </button>
+</div>

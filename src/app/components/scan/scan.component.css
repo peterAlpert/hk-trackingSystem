@@ -1,0 +1,53 @@
+/* Animation عند الفتح */
+.modal.fade .modal-dialog {
+    transform: translateY(50px) scale(0.9);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* خلفية Blur */
+.modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.custom-modal {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.custom-header {
+    background: linear-gradient(135deg, #1d2671, #c33764);
+    color: white;
+}
+
+.locker-info {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.locker-info h4 {
+    font-weight: bold;
+}
+
+.status-select.clean {
+    border: 2px solid green;
+}
+
+.status-select.not-clean {
+    border: 2px solid red;
+}
+
+.confirm-btn {
+    transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+    transform: scale(1.05);
+}

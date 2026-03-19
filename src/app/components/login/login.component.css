@@ -1,0 +1,36 @@
+/* login.component.css */
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background: #ffffffcc;
+    /* شفاف شوية */
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* input field */
+input.form-control {
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+input.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 8px #007bff44;
+    transform: scale(1.02);
+}
+
+/* button hover effect */
+button.btn {
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+button.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,60 @@
+<div class="container py-3">
+
+    <h4 class="text-center mb-3 fw-bold">📊 الفحوصات</h4>
+
+    <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-outline-success btn-sm" (click)="filter('Clean')">Clean</button>
+        <button class="btn btn-outline-danger btn-sm" (click)="filter('NotClean')">Not Clean</button>
+        <button class="btn btn-outline-dark btn-sm" (click)="filter('all')">All</button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center mt-5">
+        <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && checks.length === 0" class="text-center text-muted mt-5">
+        No checks yet
+    </div>
+
+    <!-- Cards -->
+    <div *ngFor="let item of checks" class="card shadow-sm mb-3 border-0 rounded-4 check-card" dir="rtl">
+
+        <div class="card-body">
+
+            <!-- Top Row -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                <h6 class="mb-0 fw-bold">
+                    🔐 {{ item.qrCode | slice:0:8 }}...
+                </h6>
+
+                <span class="badge px-3 py-2" [ngClass]="{
+            'bg-success': item.status === 'Clean',
+            'bg-danger': item.status === 'NotClean'
+          }">
+                    {{ item.status }}
+                </span>
+
+            </div>
+
+            <!-- Info -->
+            <div class="small text-muted mb-2">
+                👤 Supervisor: {{ item.supervisorId }}
+            </div>
+
+            <div class="small text-muted mb-2">
+                📅 {{ item.date | date:'short' }}
+            </div>
+
+            <!-- Note -->
+            <div *ngIf="item.note" class="alert alert-light py-2 px-3 mt-2 mb-0">
+                📝 {{ item.note }}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

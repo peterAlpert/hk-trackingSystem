@@ -1,0 +1,54 @@
+<!-- Scanner -->
+<div class="container mt-3">
+    <div class="card shadow p-3 text-center">
+        <h5>📷 امسح رمز QR</h5>
+        <zxing-scanner (scanSuccess)="onScan($event)"></zxing-scanner>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="lockerModal" tabindex="-1" dir="rtl">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+
+            <div class="modal-header custom-header">
+                <h5 class="modal-title">📍 تفاصيل اللوكر</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" *ngIf="scannedLocker">
+
+                <div class="locker-info">
+                    <h4>{{ scannedLocker.name }}</h4>
+                    <p>🏢 {{ scannedLocker.floor }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <label>الحالة</label>
+                    <select [(ngModel)]="status" class="form-select status-select" [ngClass]="{
+                'clean': status === 'Clean',
+                'not-clean': status === 'NotClean'
+              }">
+                        <option value="Clean">✅ نضيف</option>
+                        <option value="NotClean">❌ غير نضيف</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>ملاحظات</label>
+                    <textarea [(ngModel)]="note" class="form-control"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">الغاء</button>
+
+                <button class="btn btn-success confirm-btn" (click)="submitCheck()">
+                    {{ loading ? 'حفظ' : '✅ تاكيد' }}
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
