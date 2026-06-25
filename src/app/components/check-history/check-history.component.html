@@ -1,11 +1,37 @@
 <div class="container py-3">
+    <button (click)="goBack()" class="btn btn-outline-secondary btn-sm me-2">
+        <i class="fa fa-arrow-left"></i> رجوع
+    </button>
 
     <h4 class="text-center mb-3 fw-bold">📊 الفحوصات</h4>
 
-    <div class="d-flex gap-2 mb-3">
-        <button class="btn btn-outline-success btn-sm" (click)="filter('Clean')">Clean</button>
-        <button class="btn btn-outline-danger btn-sm" (click)="filter('NotClean')">Not Clean</button>
-        <button class="btn btn-outline-dark btn-sm" (click)="filter('all')">All</button>
+    <div class="mb-3 d-flex justify-content-start align-items-center gap-3" dir="rtl">
+
+        <!-- زر فحوصات اليوم مباشر -->
+        <!-- <button class="btn btn-primary btn-sm" (click)="showTodayChecks()">
+            فحوصات اليوم
+        </button> -->
+
+        <!-- فلتر التاريخ اليدوي فقط -->
+        <span class="me-2 fw-bold">اختر التاريخ:</span>
+        <i class="fa fa-calendar fa-lg text-primary" style="cursor:pointer" title="اختر التاريخ"
+            (click)="openDatePicker()"></i>
+        <input type="date" #dateInput [(ngModel)]="selectedDate" (change)="filterByDate()"
+            style="opacity:0; position:absolute; width:0; height:0; pointer-events:auto;">
+
+
+        <div class="mb-3" dir="rtl">
+            <input type="text" class="form-control form-control-sm" placeholder="🔍 ابحث باسم المشرف..."
+                [(ngModel)]="searchText" (input)="filterByName()">
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mb-3" dir="rtl" style="align-items:center;">
+
+        <!-- أزرار الفلترة -->
+        <button class="btn btn-outline-dark btn-sm mx-1" (click)="filter('all')">الكل</button>
+        <button class="btn btn-outline-success btn-sm mx-1" (click)="filter('Clean')">نضيف</button>
+        <button class="btn btn-outline-danger btn-sm mx-1" (click)="filter('NotClean')">غير نضيف</button>
     </div>
 
     <!-- Loading -->
@@ -15,7 +41,7 @@
 
     <!-- Empty -->
     <div *ngIf="!loading && checks.length === 0" class="text-center text-muted mt-5">
-        No checks yet
+        لا يوجد فحوصات لعرضها
     </div>
 
     <!-- Cards -->
@@ -27,30 +53,47 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
 
                 <h6 class="mb-0 fw-bold">
-                    🔐 {{ item.qrCode | slice:0:8 }}...
+                    🔐 {{ item.lockerName }}
                 </h6>
 
                 <span class="badge px-3 py-2" [ngClass]="{
-            'bg-success': item.status === 'Clean',
-            'bg-danger': item.status === 'NotClean'
-          }">
-                    {{ item.status }}
+                    'bg-success': item.status === 0,
+                    'bg-danger': item.status === 1
+                }">
+                    {{ item.status === 0 ? 'نظيف' : 'غير نظيف' }}
                 </span>
+            </div>
 
+            <!-- زرار التغيير -->
+            <!-- زرار التغيير يظهر للفحوصات غير نظيفة فقط -->
+            <div *ngIf="item.status === 1" class="mt-2 text-start">
+                <button class="btn btn-sm btn-outline-dark" (click)="confirmMarkAsClean(item)">
+                    تم تنظيفه ✅
+                </button>
             </div>
 
             <!-- Info -->
-            <div class="small text-muted mb-2">
-                👤 Supervisor: {{ item.supervisorId }}
+            <div class="small text-muted mb-2" dir="rtl">
+                👤 المشرف: {{ item.userName }}
             </div>
 
-            <div class="small text-muted mb-2">
-                📅 {{ item.date | date:'short' }}
+            <div class="small text-muted mb-2" dir="rtl" *ngIf="item.date">
+                📅 {{ formatDate(item.date) }}
             </div>
 
             <!-- Note -->
             <div *ngIf="item.note" class="alert alert-light py-2 px-3 mt-2 mb-0">
                 📝 {{ item.note }}
+            </div>
+
+            <!-- Checklist -->
+            <div *ngIf="item.items?.length" class="mt-2">
+                <div class="small fw-bold mb-1">📝 القائمة:</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span *ngFor="let c of item.items" class="badge bg-light text-dark border">
+                        {{ c.isChecked ? '✔️' : '❌' }} {{ c.name }}
+                    </span>
+                </div>
             </div>
 
         </div>

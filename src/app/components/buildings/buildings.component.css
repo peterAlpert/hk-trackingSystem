@@ -1,0 +1,49 @@
+.building-card {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white;
+    border-radius: 20px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.building-card:hover {
+    transform: translateY(-5px) scale(1.03);
+}
+
+.building-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.building-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* كارت كل المباني */
+.building-card.all {
+    background: linear-gradient(135deg, #212529, #000);
+}
+
+.building-card {
+    position: relative;
+}
+
+.building-card::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    box-shadow:
+        20px 0 white,
+        40px 0 white,
+        0 20px white,
+        20px 20px white,
+        40px 20px white;
+}

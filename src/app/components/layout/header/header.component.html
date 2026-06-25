@@ -1,0 +1,38 @@
+<nav class="navbar navbar-dark bg-black">
+    <div class="container-fluid d-flex align-items-center justify-content-between">
+        <div class="nav-top">
+            <!-- اللوجو -->
+            <a routerLink="/" class="ms-3">
+                <img src="assets/WDLogo.jfif" alt="Wadi Degla Logo" style="height: 50px;">
+            </a>
+
+            <!-- العنوان -->
+            <div class="text-center flex-grow-1 px-2 text-light me-5">
+                <span class="fs-6 fs-md-3 fw-bolder text-truncate d-block">برنامج الاشراف الداخلي</span>
+            </div>
+            <div class="empty"></div>
+        </div>
+
+    </div>
+</nav>
+
+<div class="nav-bottom d-flex flex-wrap align-items-center w-100 p-1" *ngIf="user" dir="rtl">
+
+    <!-- الأزرار -->
+    <div class="position-relative d-flex justify-content-between align-items-center w-100">
+
+        <button class="btn btn-outline-primary btn-sm" routerLink="/dashboard">
+            الرئيسية
+        </button>
+
+        <span class="position-absolute start-50 translate-middle-x text-black welcome">
+            مرحباً {{ user.name.split(' ')[0] }}
+        </span>
+
+        <button class="btn btn-outline-danger btn-sm" (click)="logout()">
+            تسجيل خروج
+        </button>
+
+    </div>
+
+</div>

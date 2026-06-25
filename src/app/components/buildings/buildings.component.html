@@ -1,0 +1,51 @@
+<div class="container py-4" dir="rtl mb-5">
+    <button (click)="goBack()" class="btn btn-outline-secondary btn-sm me-2">
+        <i class="fa fa-arrow-left"></i> رجوع
+    </button>
+
+    <h4 class="text-center mb-4 fw-bold">🏢 اختر المبنى</h4>
+
+    <div class="row g-4">
+
+        <!-- المبنى الاجتماعي -->
+        <div class="col-6">
+            <div class="building-card" (click)="goToBuilding(1)">
+                <div class="building-icon">🏢</div>
+                <div class="building-name">المبنى الاجتماعي</div>
+            </div>
+        </div>
+
+        <!-- المبنى الرياضي -->
+        <div class="col-6">
+            <div class="building-card" (click)="goToBuilding(2)">
+                <div class="building-icon">🏋️</div>
+                <div class="building-name">المبنى الرياضي</div>
+            </div>
+        </div>
+
+        <!-- مبنى الخدمات -->
+        <div class="col-6">
+            <div class="building-card" (click)="goToBuilding(3)">
+                <div class="building-icon">🛠️</div>
+                <div class="building-name">مبنى الخدمات</div>
+            </div>
+        </div>
+
+        <!-- مجمع السباحه -->
+        <div class="col-6">
+            <div class="building-card" (click)="goToBuilding(4)">
+                <div class="building-icon">🏊</div>
+                <div class="building-name">مجمع السباحه</div>
+            </div>
+        </div>
+
+        <!-- كل المباني -->
+        <div class="col-6 text-center mx-auto mb-5">
+            <div class="building-card all" (click)="goToBuilding(0)">
+                <div class="building-icon">📊</div>
+                <div class="building-name">كل المباني</div>
+            </div>
+        </div>
+
+    </div>
+</div>

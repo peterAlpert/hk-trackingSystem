@@ -1,0 +1,42 @@
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th>اللوكر</th>
+            <th>الدور</th>
+            <th>الخريطة</th>
+            <th>تحديث الموقع</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        <tr *ngFor="let item of lockers">
+
+            <td>{{item.nameAr}}</td>
+
+            <td>{{item.floor}}</td>
+
+            <td>
+
+                <button class="btn btn-primary btn-sm" (click)="openMap(item)">
+
+                    عرض الموقع
+
+                </button>
+
+            </td>
+
+            <td>
+                <button class="btn btn-success btn-sm" (click)="fixLocation(item)">
+
+                    📍 تحديث الموقع
+
+                </button>
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>

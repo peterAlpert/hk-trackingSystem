@@ -5,6 +5,7 @@ import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { CommonModule } from '@angular/common';
 import { LockerService } from '../../services/locker.service';
 import Swal from 'sweetalert2';
+import { ApiService } from '../../services/api.service';
 declare var bootstrap: any;
 
 
@@ -25,27 +26,100 @@ export class ScanComponent implements AfterViewInit {
 
   lastFocusedElement!: HTMLElement;
 
+  checklist = [
+    { name: 'توافر مناديل ورق', checked: true },
+    { name: 'توافر صابون ايدي', checked: true },
+    { name: 'نظافه الارضيات', checked: true },
+    { name: 'نظافه القواعد والمباول', checked: true },
+    { name: 'نظافه الاحواض والمرايات', checked: true }
+
+  ];
+
 
   constructor(
     private _LockerService: LockerService,
-    private Router: Router
+    private Router: Router,
+    private _ApiService: ApiService
   ) { }
 
   ngAfterViewInit() {
     const modalEl = document.getElementById('lockerModal');
 
     modalEl?.addEventListener('hidden.bs.modal', () => {
+
+      // 🧹 تنظيف الخلفية
+      document.body.classList.remove('modal-open');
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+
+      // 🧠 تنظيف الفوكس
       (document.activeElement as HTMLElement)?.blur();
       document.body.focus();
+
+      // 🔥 رجّع الاسكانر يشتغل تاني
+      this.startScannerAgain();
+
     });
+
+    this.initScanner();
+  }
+
+  scannerEnabled = true;
+
+  stopScanner() {
+    this.scannerEnabled = false;
+  }
+
+  startScannerAgain() {
+    this.scannerEnabled = true;
   }
 
   ////////////////////////////////////
   ///////// onScan ////////////// 
   ////////////////////////////////////
 
-  onScan(result: string) {
+  async initScanner() {
+    try {
+      // 🔹 تحقق من إذن الكاميرا باستخدام Permissions API
+      const status = await navigator.permissions.query({ name: 'camera' as PermissionName });
+
+      if (status.state === 'granted') {
+        console.log('Camera permission already granted ✅');
+        this.startScanner();  // افتح الـ scanner مباشرة
+      }
+      else if (status.state === 'prompt') {
+        console.log('Camera permission not yet granted, asking user...');
+        this.startScanner();  // المستخدم هيتطلب منه السماح، زي ما دلوقتي
+      }
+      else {
+        Swal.fire({
+          icon: 'error',
+          title: '🚫 لا يوجد إذن للكاميرا',
+          text: 'الرجاء السماح بالوصول إلى الكاميرا من إعدادات المتصفح'
+        });
+      }
+
+      // 🔹 استمع لتغيير حالة الإذن لو حصل أي تعديل
+      status.onchange = () => {
+        console.log('Camera permission changed to', status.state);
+      }
+
+    } catch (err) {
+      console.warn('Permissions API not supported, fallback to scanner init');
+      this.startScanner();  // بعض المتصفحات القديمة لا تدعم Permissions API
+    }
+  }
+
+  startScanner() {
+    // هذا الكود موجود بالفعل في ngx-scanner
+    // لا تحتاج تغييرات، مجرد استدعاء للـ scanner في الـ template
+    console.log('Scanner is ready to use');
+  }
+
+  async onScan(result: string) {
+
+
     console.log('QR scanned:', result);
+    this.stopScanner();
 
     const user = JSON.parse(localStorage.getItem('user')!);
 
@@ -54,9 +128,10 @@ export class ScanComponent implements AfterViewInit {
       supervisorId: user.id,
       status: 'Clean'
     }).subscribe({
-      next: (res: any) => {
+      next: async (res: any) => {
 
         this.scannedLocker = {
+          id: res.lockerId,
           qrCode: result.trim(),
           name: res.lockerName,
           floor: res.floor,
@@ -64,8 +139,28 @@ export class ScanComponent implements AfterViewInit {
           lng: Number(res.lng)
         };
 
-        console.log(typeof this.scannedLocker.lat);
-        console.log(typeof this.scannedLocker.lng);
+        Swal.fire({
+          title: '📍 جاري التحقق من الموقع',
+          text: 'برجاء الانتظار...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        // const isValid = await this.validateLocation();
+
+        Swal.close();
+
+        try {
+
+          await this.validateLocation();
+
+        } catch {
+
+          console.log('Location validation skipped');
+
+        }
 
 
         this.lastFocusedElement = document.activeElement as HTMLElement;
@@ -94,7 +189,7 @@ export class ScanComponent implements AfterViewInit {
 
       const timeout = setTimeout(() => {
         reject('Timeout');
-      }, 10000); // 10 ثواني
+      }, 5000); // 10 ثواني
 
       navigator.geolocation.getCurrentPosition(
 
@@ -115,7 +210,7 @@ export class ScanComponent implements AfterViewInit {
 
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 5000,
           maximumAge: 0
         }
 
@@ -129,39 +224,69 @@ export class ScanComponent implements AfterViewInit {
   ////////////////////////////////////
 
   // 🟢 دالة للحصول على أفضل موقع من 3 محاولات
+  // async getAccurateLocation(): Promise<{ lat: number; lng: number; accuracy: number }> {
+  //   const attempts = 1;          // عدد القراءات
+  //   const results: { lat: number; lng: number; accuracy: number }[] = [];
+
+  //   for (let i = 0; i < attempts; i++) {
+  //     try {
+  //       const pos = await new Promise<{ lat: number; lng: number; accuracy: number }>((resolve, reject) => {
+  //         navigator.geolocation.getCurrentPosition(
+  //           (position) => resolve({
+  //             lat: position.coords.latitude,
+  //             lng: position.coords.longitude,
+  //             accuracy: position.coords.accuracy
+  //           }),
+  //           (err) => reject(err),
+  //           { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+  //         );
+  //       });
+  //       results.push(pos);
+  //     } catch (error) {
+  //       console.warn('Geolocation attempt failed', error);
+  //     }
+
+  //     // انتظر نص ثانية قبل القراءة التالية
+  //     await new Promise(res => setTimeout(res, 1000));
+  //   }
+
+  //   if (results.length === 0) {
+  //     throw new Error('Unable to get location');
+  //   }
+
+  //   // اختار القراءة الأفضل (الأقل accuracy)
+  //   results.sort((a, b) => a.accuracy - b.accuracy);
+  //   return results[0];
+  // }
+
   async getAccurateLocation(): Promise<{ lat: number; lng: number; accuracy: number }> {
-    const attempts = 3;          // عدد القراءات
-    const results: { lat: number; lng: number; accuracy: number }[] = [];
 
-    for (let i = 0; i < attempts; i++) {
-      try {
-        const pos = await new Promise<{ lat: number; lng: number; accuracy: number }>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            (position) => resolve({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              accuracy: position.coords.accuracy
-            }),
-            (err) => reject(err),
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          );
-        });
-        results.push(pos);
-      } catch (error) {
-        console.warn('Geolocation attempt failed', error);
-      }
+    return new Promise((resolve, reject) => {
 
-      // انتظر نص ثانية قبل القراءة التالية
-      await new Promise(res => setTimeout(res, 500));
-    }
+      navigator.geolocation.getCurrentPosition(
 
-    if (results.length === 0) {
-      throw new Error('Unable to get location');
-    }
+        (position) => {
 
-    // اختار القراءة الأفضل (الأقل accuracy)
-    results.sort((a, b) => a.accuracy - b.accuracy);
-    return results[0];
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          });
+
+        },
+
+        (err) => reject(err),
+
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 10000
+        }
+
+      );
+
+    });
+
   }
 
 
@@ -189,45 +314,42 @@ export class ScanComponent implements AfterViewInit {
     return R * c; // بالمتر
   }
 
+  ///////////////////////////////////////////////
+  ///////// validateLocation ////////////// 
+  /////////////////////////////////////////
 
-  ////////////////////////////////////
-  ///////// submitCheck ////////////// 
-  ////////////////////////////////////
-
-  async submitCheck() {
+  async validateLocation(): Promise<boolean> {
 
     let userLocation;
 
-    // 🟢 1. هات الموقع الأول
     try {
-      // userLocation = await this.getCurrentLocation();
+
       userLocation = await this.getAccurateLocation();
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'الموقع غير متاح',
-        text: 'الرجاء السماح بالوصول إلى الموقع والمحاولة مرة أخرى'
-      });
-      this.warnAudio.play();
-      return;
-    }
-    console.log('Locker:', this.scannedLocker);
-    console.log('User:', userLocation);
 
-    console.log('Location:', userLocation);
+    } catch {
 
-    // ❌ لو GPS ضعيف
-    if (userLocation.accuracy > 200) {
-      Swal.fire({
-        icon: 'warning',
-        title: '📡 ضعيف GPS',
-        text: 'الرجاء التأكد من تشغيل GPS لتحسين الدقة'
-      });
+      // Swal.fire({
+      //   icon: 'error',
+      //   title: 'الموقع غير متاح',
+      //   text: 'الرجاء السماح بالوصول إلى الموقع'
+      // });
+
       this.warnAudio.play();
-      return;
+
+      return false;
     }
 
-    // 🟢 2. احسب المسافة
+    if (userLocation.accuracy > 50) {
+
+      // Swal.fire({
+      //   icon: 'warning',
+      //   title: '📡 GPS ضعيف',
+      //   text: `دقة الموقع الحالية ${Math.round(userLocation.accuracy)} متر`
+      // });
+
+      return false;
+    }
+
     const distance = this.getDistance(
       userLocation.lat,
       userLocation.lng,
@@ -235,24 +357,137 @@ export class ScanComponent implements AfterViewInit {
       this.scannedLocker.lng
     );
 
-    console.log('Distance:', distance);
-
-    const allowedDistance = Math.max(10, userLocation.accuracy);
-
-    console.log('Allowed Distance:', allowedDistance);
+    const allowedDistance =
+      Math.max(30, userLocation.accuracy + 10);
 
     if (distance > allowedDistance) {
-      Swal.fire({
-        icon: 'error',
-        title: '🚫 بعيد جدا',
-        text: `المسافه تبعد عن الموقع: ${Math.round(distance)}م`
-      });
-      this.warnAudio.play();
-      return;
+
+      // Swal.fire({
+      //   icon: 'error',
+      //   title: '🚫 بعيد جدا',
+      //   text: `المسافة ${Math.round(distance)} متر`
+      // });
+
+      return false;
     }
+
+    return true;
+  }
+
+  ////////////////////////////////////
+  ///////// submitCheck ////////////// 
+  ////////////////////////////////////
+
+  async submitCheck() {
+
+    //   let userLocation;
+
+    //   // 🟢 1. هات الموقع الأول
+    //   try {
+    //     // userLocation = await this.getCurrentLocation();
+    //     userLocation = await this.getAccurateLocation();
+    //   } -(error) {
+    //     Swal.fire({
+    //       icon: 'error',
+    //       title: 'الموقع غير متاح',
+    //       text: 'الرجاء السماح بالوصول إلى الموقع والمحاولة مرة أخرى'
+    //     });
+    //     this.warnAudio.play();
+    //     return;
+    //   }
+    //   console.log('Locker:', this.scannedLocker);
+    //   console.log('User:', userLocation);
+
+    //   console.log('Location:', userLocation);
+
+    //   // ❌ لو GPS ضعيف
+    //   if (userLocation.accuracy > 50) {
+    //     Swal.fire({
+    //       icon: 'warning',
+    //       title: '📡 ضعيف GPS',
+    //       text: `دقة الموقع الحالية ${Math.round(userLocation.accuracy)} متر`
+    //     });
+    //     this.warnAudio.play();
+
+    //     const user = JSON.parse(localStorage.getItem('user')!);
+
+    //     this._ApiService.saveDebug({
+    //       lockerId: this.scannedLocker.id,
+    //       userId: user.id,
+
+    //       userLat: userLocation.lat,
+    //       userLng: userLocation.lng,
+
+    //       lockerLat: this.scannedLocker.lat,
+    //       lockerLng: this.scannedLocker.lng,
+
+    //       distance: 0,
+    //       accuracy: userLocation.accuracy,
+
+    //       reason: 'WeakGPS'
+    //     }).subscribe();
+
+    //     return;
+    //   }
+
+    //   // 🟢 2. احسب المسافة
+    //   const distance = this.getDistance(
+    //     userLocation.lat,
+    //     userLocation.lng,
+    //     this.scannedLocker.lat,
+    //     this.scannedLocker.lng
+    //   );
+
+    //   console.log('Distance:', distance);
+
+    //   Swal.fire({
+    //     icon: 'info',
+    //     title: 'تشخيص الموقع',
+    //     html: `
+    //   دقة GPS: ${Math.round(userLocation.accuracy)} متر<br>
+    //   المسافة: ${Math.round(distance)} متر
+    // `
+    //   });
+
+    //   const allowedDistance = Math.max(30, userLocation.accuracy + 10);
+
+    //   console.log('Allowed Distance:', allowedDistance);
+
+    // if (distance > allowedDistance) {
+    //   Swal.fire({
+    //     icon: 'error',
+    //     title: '🚫 بعيد جدا',
+    //     text: `المسافه تبعد عن الموقع: ${Math.round(distance)}م`
+    //   });
+    //   this.warnAudio.play();
+
+    //   const user = JSON.parse(localStorage.getItem('user')!);
+
+    //   this._ApiService.saveDebug({
+    //     lockerId: this.scannedLocker.id,
+    //     userId: user.id,
+
+    //     userLat: userLocation.lat,
+    //     userLng: userLocation.lng,
+
+    //     lockerLat: this.scannedLocker.lat,
+    //     lockerLng: this.scannedLocker.lng,
+
+    //     distance: distance,
+    //     accuracy: userLocation.accuracy,
+
+    //     reason: 'DistanceFailed'
+    //   }).subscribe();
+
+
+    //   return;
+    // }
 
     // 🟢 3. بعد كل ده افتح الـ confirm
     const isNotClean = this.status === 'NotClean';
+    const selectedItems = this.checklist
+      .filter(x => x.checked)
+      .map(x => x.name);
 
     const result = await Swal.fire({
       title: isNotClean ? '⚠️ !غير نظيف' : ' هل انت متأكد؟',
@@ -271,10 +506,11 @@ export class ScanComponent implements AfterViewInit {
     this.loading = true;
 
     this._LockerService.saveLog({
-      qrCode: this.scannedLocker.qrCode,
-      supervisorId: user.id,
+      lockerId: this.scannedLocker.id,   // 🔥
+      userId: user.id,                  // 🔥
       status: this.status,
-      note: this.note
+      note: this.note,
+      checklist: selectedItems.length ? selectedItems : []
     }).subscribe({
       next: () => {
         this.loading = false;
@@ -294,7 +530,9 @@ export class ScanComponent implements AfterViewInit {
         const modalEl = document.getElementById('lockerModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
 
-        modal.hide();
+        (document.activeElement as HTMLElement)?.blur();
+
+        modal?.hide();
 
         // 🔥 الحل هنا
         setTimeout(() => {
@@ -302,8 +540,18 @@ export class ScanComponent implements AfterViewInit {
           document.body.focus();
         }, 100);
 
+        document.body.classList.remove('modal-open');
+
+        const backdrops = document.getElementsByClassName('modal-backdrop');
+        while (backdrops.length > 0) {
+          backdrops[0].remove();
+        }
+
         this.scannedLocker = null;
-        this.Router.navigate(['/checks']);
+        this.note = '';
+        this.status = 'Clean';
+        this.checklist.forEach(x => x.checked = true);
+        this.startScannerAgain();
       },
       error: () => {
         this.loading = false;
@@ -315,5 +563,16 @@ export class ScanComponent implements AfterViewInit {
         });
       }
     });
+
+    (document.activeElement as HTMLElement)?.blur();
+
+    // اقفل المودال
+    const modal = document.getElementById('myModal');
+    const modalInstance = (window as any).bootstrap?.Modal.getInstance(modal);
+    modalInstance?.hide();
+
+    // تنظيف الباك دروب لو لزم
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   }
 }

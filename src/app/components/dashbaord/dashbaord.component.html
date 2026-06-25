@@ -1,1 +1,16 @@
-<p>dashbaord works!</p>
+<div class="d-flex flex-column align-items-center justify-content-center text-center pt-5">
+    <h2>👋 مرحباً بك <br> {{ user?.name }}</h2>
+
+    <div class="mt-4 d-flex flex-column gap-3 w-75">
+        <button class="btn btn-primary btn-lg" routerLink="/scan">
+            إجراء فحص جديد
+        </button>
+
+        <button class="btn btn-outline-secondary btn-lg" routerLink="/buildings">
+            عرض كل الفحوصات
+        </button>
+        <button class="btn btn-outline-info btn-lg" routerLink="/stock">
+            عرض المخزون
+        </button>
+    </div>
+</div>

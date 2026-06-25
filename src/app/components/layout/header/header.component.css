@@ -1,0 +1,52 @@
+/* الهيدر كله */
+.custom-navbar {
+    background: #fff;
+    padding: 10px 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* السطر الأول */
+.nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* اللوجو */
+.logo {
+    font-size: 22px;
+}
+
+/* العنوان */
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    flex: 1;
+}
+
+/* عنصر وهمي عشان يظبط التوازن */
+.empty {
+    width: 22px;
+}
+
+/* السطر التاني */
+.nav-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+/* مرحبا */
+.welcome {
+    font-size: 16px;
+    font-weight: 800;
+    text-shadow: black 1px 1px 2px;
+}
+
+/* زرار */
+.logout-btn {
+    font-size: 13px;
+    padding: 4px 10px;
+}

@@ -1,0 +1,120 @@
+<div class="container py-3" dir="rtl">
+
+    <h4 class="text-center mb-4">📦 المخزون</h4>
+
+    <!-- إضافة -->
+    <span class="fs-4 fw-bold text-center d-block">أضافة منتج جديد</span><br>
+    <div class="d-flex gap-2 mb-5 align-items-start">
+
+        <!-- اسم المنتج -->
+        <input class="form-control" [(ngModel)]="newItemName" placeholder="اسم المنتج">
+
+        <!-- الكمية -->
+        <div class="w-50">
+
+            <input type="text" inputmode="numeric" min="1" class="form-control" [(ngModel)]="newItemQty"
+                [ngClass]="{'is-invalid': qtyError}" (focus)="onFocusQty()" (input)="onQtyInput($event)"
+                placeholder="العدد">
+
+            <!-- رسالة الخطأ -->
+            <div *ngIf="qtyError" class="text-danger small mt-1">
+                {{ qtyError }}
+            </div>
+
+        </div>
+
+        <!-- زر الإضافة -->
+        <button class="btn btn-success" (click)="addItem()"
+            [disabled]="!newItemName?.trim() || !newItemQty || newItemQty <= 0 || qtyError">إضافة</button>
+
+    </div>
+
+    <!-- 🔵 تزويد منتج موجود -->
+    <span class="fs-4 fw-bold text-center d-block">تزويد منتج موجود</span><br>
+
+    <div class="d-flex gap-2 mb-5 align-items-start">
+
+        <!-- Dropdown المنتجات -->
+        <select class="form-select" [(ngModel)]="selectedItemId">
+            <option [ngValue]="null">اختر المنتج</option>
+            <!-- <option *ngFor="let item of items" [ngValue]="item.id"> -->
+            <option *ngFor="let item of items" [ngValue]="item.id">
+                {{ item.name }} ({{ item.quantity }})
+            </option>
+        </select>
+
+        <!-- الكمية -->
+        <div class="w-50">
+
+            <input type="text" inputmode="numeric" class="form-control" [(ngModel)]="increaseQty"
+                [ngClass]="{'is-invalid': qtyError2}" (input)="onIncreaseInput($event)" placeholder="العدد">
+
+            <div *ngIf="qtyError2" class="text-danger small mt-1">
+                {{ qtyError2 }}
+            </div>
+
+        </div>
+
+        <!-- زر التزويد -->
+        <button class="btn btn-primary" (click)="increaseExistingItem()"
+            [disabled]="!selectedItemId || !increaseQty || increaseQty <= 0 || qtyError2">
+            تزويد
+        </button>
+
+    </div>
+
+    <span class="fs-4 fw-bold text-center d-block">تقليل منتج موجود</span><br>
+
+    <div class="d-flex gap-2 mb-5 align-items-start">
+
+        <!-- Dropdown المنتجات -->
+        <select class="form-select" [(ngModel)]="decreaseItemId">
+            <option [ngValue]="null">اختر المنتج</option>
+            <option *ngFor="let item of items" [ngValue]="item.id">
+                {{ item.name }} ({{ item.quantity }})
+            </option>
+        </select>
+
+        <!-- الكمية -->
+        <div class="w-50">
+            <input type="text" inputmode="numeric" class="form-control" [(ngModel)]="decreaseQty"
+                [ngClass]="{'is-invalid': qtyError3}" (input)="onDecreaseInput($event)" placeholder="العدد">
+
+            <div *ngIf="qtyError3" class="text-danger small mt-1">
+                {{ qtyError3 }}
+            </div>
+        </div>
+
+        <!-- زر التقليل -->
+        <button class="btn btn-danger" (click)="decreaseExistingItem()"
+            [disabled]="!decreaseItemId || !decreaseQty || decreaseQty <= 0 || qtyError3">
+            تقليل
+        </button>
+
+    </div>
+
+    <!-- عرض -->
+    <span class="fs-4 fw-bold text-center d-block mb-5">عرض المنتجات</span><br>
+    <div *ngFor="let item of items" class="card mb-2 p-3 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ item.name }}</strong>
+                <div [ngClass]="{'text-danger': item.quantity < 3}">
+                    الكمية: {{ item.quantity }}
+                </div>
+                <div *ngIf="item.quantity <= 3" class="text-danger small">
+                    ⚠️ الكمية قليلة
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm" (click)="increase(item)">+</button>
+                <button class="btn btn-danger btn-sm" (click)="decrease(item)">-</button>
+                <button class="btn btn-dark btn-sm" (click)="delete(item)">🗑</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

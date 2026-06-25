@@ -2,7 +2,7 @@
 <div class="container mt-3">
     <div class="card shadow p-3 text-center">
         <h5>📷 امسح رمز QR</h5>
-        <zxing-scanner (scanSuccess)="onScan($event)"></zxing-scanner>
+        <zxing-scanner *ngIf="scannerEnabled" (scanSuccess)="onScan($event)"></zxing-scanner>
     </div>
 </div>
 
@@ -13,7 +13,8 @@
 
             <div class="modal-header custom-header">
                 <h5 class="modal-title">📍 تفاصيل اللوكر</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" tabindex="-1">
+                </button>
             </div>
 
             <div class="modal-body" *ngIf="scannedLocker">
@@ -32,6 +33,25 @@
                         <option value="Clean">✅ نضيف</option>
                         <option value="NotClean">❌ غير نضيف</option>
                     </select>
+                </div>
+
+                <!-- Checklist -->
+                <div class="mb-3" *ngIf="status">
+                    <label>📝 القائمة</label>
+
+                    <div class="form-check" *ngFor="let item of checklist; let i = index" class="check-container">
+
+                        <!-- wrapper للسطر كله -->
+                        <label class="form-check-label w-100 p-2 rounded check-row" [for]="'check-' + i">
+                            <!-- checkbox مطلق -->
+                            <input type="checkbox" class="form-check-input check-absolute" [(ngModel)]="item.checked"
+                                [id]="'check-' + i" name="check-{{item.name}}">
+
+                            <!-- النص -->
+                            <span class="check-text ps-5">{{ item.name }}</span>
+                        </label>
+
+                    </div>
                 </div>
 
                 <div class="mb-3">

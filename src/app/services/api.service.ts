@@ -15,4 +15,11 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/check/scan`, data);
   }
 
+  saveDebug(data: any) {
+    return this.http.post(
+      `${environment.baseUrl}/LocationDebugLog/save-debug`,
+      data
+    );
+  }
+
 }
