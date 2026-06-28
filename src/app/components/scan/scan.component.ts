@@ -553,13 +553,18 @@ export class ScanComponent implements AfterViewInit {
         this.checklist.forEach(x => x.checked = true);
         this.startScannerAgain();
       },
-      error: () => {
+      error: (err: any) => {
         this.loading = false;
 
         Swal.fire({
           icon: 'error',
-          title: '!خطأ',
-          text: 'خطأ عند إرسال الفحص'
+          title: `HTTP ${err.status}`,
+          html: `
+      <b>Status:</b> ${err.status}<br><br>
+      <pre style="text-align:left;white-space:pre-wrap">
+${JSON.stringify(err.error, null, 2)}
+      </pre>
+    `
         });
       }
     });
