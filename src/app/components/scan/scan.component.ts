@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { LockerService } from '../../services/locker.service';
 import Swal from 'sweetalert2';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 declare var bootstrap: any;
 
 
@@ -39,7 +40,8 @@ export class ScanComponent implements AfterViewInit {
   constructor(
     private _LockerService: LockerService,
     private Router: Router,
-    private _ApiService: ApiService
+    private _ApiService: ApiService,
+    private auth: AuthService
   ) { }
 
   ngAfterViewInit() {
@@ -380,109 +382,6 @@ export class ScanComponent implements AfterViewInit {
 
   async submitCheck() {
 
-    //   let userLocation;
-
-    //   // 🟢 1. هات الموقع الأول
-    //   try {
-    //     // userLocation = await this.getCurrentLocation();
-    //     userLocation = await this.getAccurateLocation();
-    //   } -(error) {
-    //     Swal.fire({
-    //       icon: 'error',
-    //       title: 'الموقع غير متاح',
-    //       text: 'الرجاء السماح بالوصول إلى الموقع والمحاولة مرة أخرى'
-    //     });
-    //     this.warnAudio.play();
-    //     return;
-    //   }
-    //   console.log('Locker:', this.scannedLocker);
-    //   console.log('User:', userLocation);
-
-    //   console.log('Location:', userLocation);
-
-    //   // ❌ لو GPS ضعيف
-    //   if (userLocation.accuracy > 50) {
-    //     Swal.fire({
-    //       icon: 'warning',
-    //       title: '📡 ضعيف GPS',
-    //       text: `دقة الموقع الحالية ${Math.round(userLocation.accuracy)} متر`
-    //     });
-    //     this.warnAudio.play();
-
-    //     const user = JSON.parse(localStorage.getItem('user')!);
-
-    //     this._ApiService.saveDebug({
-    //       lockerId: this.scannedLocker.id,
-    //       userId: user.id,
-
-    //       userLat: userLocation.lat,
-    //       userLng: userLocation.lng,
-
-    //       lockerLat: this.scannedLocker.lat,
-    //       lockerLng: this.scannedLocker.lng,
-
-    //       distance: 0,
-    //       accuracy: userLocation.accuracy,
-
-    //       reason: 'WeakGPS'
-    //     }).subscribe();
-
-    //     return;
-    //   }
-
-    //   // 🟢 2. احسب المسافة
-    //   const distance = this.getDistance(
-    //     userLocation.lat,
-    //     userLocation.lng,
-    //     this.scannedLocker.lat,
-    //     this.scannedLocker.lng
-    //   );
-
-    //   console.log('Distance:', distance);
-
-    //   Swal.fire({
-    //     icon: 'info',
-    //     title: 'تشخيص الموقع',
-    //     html: `
-    //   دقة GPS: ${Math.round(userLocation.accuracy)} متر<br>
-    //   المسافة: ${Math.round(distance)} متر
-    // `
-    //   });
-
-    //   const allowedDistance = Math.max(30, userLocation.accuracy + 10);
-
-    //   console.log('Allowed Distance:', allowedDistance);
-
-    // if (distance > allowedDistance) {
-    //   Swal.fire({
-    //     icon: 'error',
-    //     title: '🚫 بعيد جدا',
-    //     text: `المسافه تبعد عن الموقع: ${Math.round(distance)}م`
-    //   });
-    //   this.warnAudio.play();
-
-    //   const user = JSON.parse(localStorage.getItem('user')!);
-
-    //   this._ApiService.saveDebug({
-    //     lockerId: this.scannedLocker.id,
-    //     userId: user.id,
-
-    //     userLat: userLocation.lat,
-    //     userLng: userLocation.lng,
-
-    //     lockerLat: this.scannedLocker.lat,
-    //     lockerLng: this.scannedLocker.lng,
-
-    //     distance: distance,
-    //     accuracy: userLocation.accuracy,
-
-    //     reason: 'DistanceFailed'
-    //   }).subscribe();
-
-
-    //   return;
-    // }
-
     // 🟢 3. بعد كل ده افتح الـ confirm
     const isNotClean = this.status === 'NotClean';
     const selectedItems = this.checklist
@@ -520,13 +419,6 @@ export class ScanComponent implements AfterViewInit {
           navigator.vibrate([100, 50, 100]);
         }
 
-        Swal.fire({
-          icon: 'success',
-          title: '✅ تم تسجيل الفحص',
-          timer: 2000,
-          showConfirmButton: false
-        });
-
         const modalEl = document.getElementById('lockerModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
 
@@ -547,32 +439,48 @@ export class ScanComponent implements AfterViewInit {
           backdrops[0].remove();
         }
 
-        this.scannedLocker = null;
-        this.note = '';
-        this.status = 'Clean';
-        this.checklist.forEach(x => x.checked = true);
-        this.startScannerAgain();
+        Swal.fire({
+          icon: 'success',
+          title: '✅ تم تسجيل الفحص',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+
+          this.scannedLocker = null;
+          this.note = '';
+          this.status = 'Clean';
+          this.checklist.forEach(x => x.checked = true);
+
+          this.Router.navigate(['/dashboard']);
+
+        });
       },
       error: (err: any) => {
         this.loading = false;
 
-        Swal.fire({
-          icon: 'error',
-          title: `HTTP ${err.status}`,
-          html: `
-      <b>Status:</b> ${err.status}<br><br>
-      <pre style="text-align:left;white-space:pre-wrap">
-${JSON.stringify(err.error, null, 2)}
-      </pre>
-    `
-        });
+        if (err.status === 401) {
+
+          Swal.fire({
+            icon: 'warning',
+            title: 'انتهت جلسة تسجيل الدخول',
+            text: 'برجاء تسجيل الدخول مرة أخرى'
+          }).then(() => {
+
+            this.auth.logout();
+
+            this.Router.navigate(['/login']);
+
+          });
+
+          return;
+        }
       }
     });
 
     (document.activeElement as HTMLElement)?.blur();
 
     // اقفل المودال
-    const modal = document.getElementById('myModal');
+    const modal = document.getElementById('lockerModal');
     const modalInstance = (window as any).bootstrap?.Modal.getInstance(modal);
     modalInstance?.hide();
 
